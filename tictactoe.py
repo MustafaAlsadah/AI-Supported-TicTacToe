@@ -60,27 +60,12 @@ def player(board):
 
 
 def actions(board):
-    """
-    Returns set of all possible actions (i, j) available on the board.
-    """
-    # setOfPossibleMoves = []
-    # numberOfMoves = 0
-    # oddTurn = numberOfMoves % 2 != 0
-    # for i in range(2):
-    #     for j in range(2):
-    #         numberOfMoves += 1
-    #         if (numberOfMoves == 10):
-    #             return setOfPossibleMoves
-    #         if (board[i][j] == EMPTY):
-    #             setOfPossibleMoves.append((i, j))
     moves = []
 
     for i in range(3):
         for j in range(3):
             if board[i][j] == EMPTY:
                 moves.append((i, j))
-    if moves==0:
-        print("HEEEY")
     return moves
 
 
@@ -89,21 +74,11 @@ class InvalidActionError:
 
 
 def result(board, action):
-    """
-    Returns the board that results from making move (i, j) on the board.
-    """
-    # copiedBoard = copy.deepcopy(board)
-    # i = action[0]
-    # j = action[1]
-    # actionSign = player(copiedBoard)
-    # copiedBoard[i][j] = actionSign
-    # return copiedBoard
-    if action==0:
+    if action == 0:
         # action = (0,0)
         print("LL")
     i = action[0]
     j = action[1]
-
 
     # Check if move is valid:
     if i not in [0, 1, 2] or j not in [0, 1, 2]:
@@ -196,23 +171,23 @@ def terminal(board):
         return False
 
 
-
 def utility(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    if winner(board) =='X':
+    if winner(board) == 'X':
         return 1
     elif winner(board) == 'O':
         return -1
     else:
         return 0
 
+
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    global actions_explored
+    global actions_explored, currentGreatestUtility
     actions_explored = 0
 
     def max_value(board):
@@ -227,7 +202,7 @@ def minimax(board):
     def min_value(board):
         if terminal(board):
             return utility(board)
-        v=math.inf
+        v = math.inf
         for action in actions(board):
             successor = result(board, action)
             v = min(v, max_value(result(board, action)))
@@ -239,17 +214,19 @@ def minimax(board):
     current_player = player(board)
 
     if current_player == X:
-        v = -math.inf
+        currentGreatestUtility = -math.inf
         for action in actions(board):
-            k = min_value(result(board, action))  # FIXED
-            if k > v:
-                v = k
-                best_move = action
+            successor = result(board, action)
+            pathMaximumUtility = min_value(successor)
+            if pathMaximumUtility > currentGreatestUtility:
+                currentGreatestUtility = pathMaximumUtility  # Assigns the largest achievable utility from this board subtree
+                best_move = action  # Assigns the action that'll lead you to the largest utility node
     else:
-        v = math.inf
+        currentLeastUtility = math.inf
         for action in actions(board):
-            k = max_value(result(board, action))  # FIXED
-            if k < v:
-                v = k
-                best_move = action
+            successor = result(board, action)
+            pathMinimumUtility = max_value(successor)
+            if pathMinimumUtility < currentLeastUtility:  # If this path has a
+                currentLeastUtility = pathMinimumUtility  # Assigns the least achievable utility from this board subtree
+                best_move = action  # Assigns the action that'll lead you to the least utility node
     return best_move
