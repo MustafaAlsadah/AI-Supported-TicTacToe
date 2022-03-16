@@ -3,11 +3,13 @@ Tic Tac Toe Player
 """
 import copy
 import math
+from random import random
 import random
 
 X = "X"
 O = "O"
 EMPTY = None
+
 
 def initial_state():
     """
@@ -19,93 +21,180 @@ def initial_state():
 
 
 def player(board):
-    numberOfMoves = 0
-    numberOfEmptyCells = 0
-    for i in range(3):
-        for j in range(3):
-            numberOfMoves+=1
-            if(numberOfMoves==10):
-                currentTurnNumber = abs(9-numberOfEmptyCells)+1
-                XTurn = currentTurnNumber%2!=0
-                if (XTurn):
-                    return X
-                else:
-                    return O
-                return "END"
-            if(board[i][j]==EMPTY):
-                numberOfEmptyCells+=1
+    """
+    Returns player who has the next turn on a board.
+    """
+    # numberOfMoves = 0
+    # numberOfEmptyCells = 0
+    # for i in range(2):
+    #     for j in range(2):
+    #         numberOfMoves+=1
+    #         if(numberOfMoves==10):
+    #             currentTurnNumber = abs(9-numberOfEmptyCells)+1
+    #             XTurn = currentTurnNumber%2!=0
+    #             if (XTurn):
+    #                 return X
+    #             else:
+    #                 return O
+    #             return "END"
+    #         if(board[i][j]==EMPTY):
+    #             numberOfEmptyCells+=1
+    #
 
+    X_count = 0
+    O_count = 0
+    EMPTY_count = 0
+
+    for row in board:
+        X_count += row.count(X)
+        O_count += row.count(O)
+        EMPTY_count += row.count(EMPTY)
+
+    # If X has more squares than O, its O's turn:
+    if X_count > O_count:
+        return O
+
+    # Otherwise it is X's turn:
+    else:
+        return X
 
 
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    setOfPossibleMoves = []
+    # setOfPossibleMoves = []
+    # numberOfMoves = 0
+    # oddTurn = numberOfMoves % 2 != 0
+    # for i in range(2):
+    #     for j in range(2):
+    #         numberOfMoves += 1
+    #         if (numberOfMoves == 10):
+    #             return setOfPossibleMoves
+    #         if (board[i][j] == EMPTY):
+    #             setOfPossibleMoves.append((i, j))
+    moves = []
+
     for i in range(3):
         for j in range(3):
-            if (board[i][j] == EMPTY):
-                setOfPossibleMoves.append((i,j))
-    return setOfPossibleMoves
+            if board[i][j] == EMPTY:
+                moves.append((i, j))
+    if moves==0:
+        print("HEEEY")
+    return moves
+
+
+class InvalidActionError:
+    pass
 
 
 def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    copiedBoard = copy.deepcopy(board)
+    # copiedBoard = copy.deepcopy(board)
+    # i = action[0]
+    # j = action[1]
+    # actionSign = player(copiedBoard)
+    # copiedBoard[i][j] = actionSign
+    # return copiedBoard
+    if action==0:
+        # action = (0,0)
+        print("LL")
     i = action[0]
     j = action[1]
-    actionSign = player(copiedBoard)
-    copiedBoard[i][j] = actionSign
-    return copiedBoard
+
+
+    # Check if move is valid:
+    if i not in [0, 1, 2] or j not in [0, 1, 2]:
+        raise InvalidActionError(action, board, 'Result function given an invalid board position for action: ')
+    elif board[i][j] != EMPTY:
+        raise InvalidActionError(action, board, 'Result function tried to perform invalid action on occupaied tile: ')
+
+    # Make a deep copy of the board and update with the current player's move:
+    board_copy = copy.deepcopy(board)
+    board_copy[i][j] = player(board)
+
+    return board_copy
 
 
 def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
-    # If Winning way with row
+    # # If Winning way with row
     for rowWin in board:
         if rowWin.count(O) == 3:
             return O
         if rowWin.count(X) == 3:
             return X
-    # If Winning way with column
-    for columns in range(3):
-        column =""
-        for everyCell in range(3):
-            column=column+str(board[everyCell][columns])
-        if column=="OOO":
-            return O
-        if column=="XXX":
+    # # If Winning way with column
+    # for columns in range(3):
+    #     column =''
+    #     for everyCell in range(3):
+    #         column=column+str(board[everyCell][columns])
+    #
+    # if column=='OOO':
+    #     return O
+    # if column=='XXX':
+    #     return X
+    # # If Winning way with cross
+    # cross1 =''
+    # cross2 =''
+    # numberOfCrosses=2
+    # for row in range(3):
+    #     cross1 = cross1+str(board[row][row])
+    #     cross2 =cross2+ str(board[row][numberOfCrosses])
+    #     numberOfCrosses= numberOfCrosses-1
+    #
+    # if cross1 == 'OOO' or cross2 == 'OOO':
+    #     return O
+    # elif cross1 == 'XXX' or cross2 == 'XXX':
+    #     return X
+    #
+    # #If there is no Winner
+    # return None
+
+    for j in range(3):
+        column = ''
+        for i in range(3):
+            column += str(board[i][j])
+
+        if column == 'XXX':
             return X
-        # If Winning way with cross
-    cross1 =''
-    cross2 =''
-    numberOfCrosses=0
-    for row in range(3):
-        cross1 = cross1+str(board[row][numberOfCrosses])
-        cross2 =cross2+ str(board[row][row])
-        numberOfCrosses= numberOfCrosses+1
+        if column == 'OOO':
+            return O
 
-    if cross1 == 'OOO' or cross2 == 'OOO':
-        return O
-    if cross1 == 'XXX' or cross2 == 'XXX':
+        # Check Diagonals:
+    diag1 = ''
+    diag2 = ''
+    j = 2
+
+    for i in range(3):
+        diag1 += str(board[i][i])
+        diag2 += str(board[i][j])
+        j -= 1
+
+    if diag1 == 'XXX' or diag2 == 'XXX':
         return X
+    elif diag1 == 'OOO' or diag2 == 'OOO':
+        return O
 
-    #If there is no Winner
-    return False
+    # Otherwise no current winner, return None
+    return None
 
 
 def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    if winner(board)!=False:
+    if winner(board):
+        return True
+    elif not actions(board):
         return True
     else:
         return False
+
 
 
 def utility(board):
@@ -126,84 +215,41 @@ def minimax(board):
     global actions_explored
     actions_explored = 0
 
-    def max_player(board, best_min=10):
-        """ Helper function to maximise score for 'X' player.
-            Uses alpha-beta pruning to reduce the state space explored.
-            best_min is the best result
-        """
-
-        global actions_explored
-
-        # If the game is over, return board value
+    def max_value(board):
         if terminal(board):
-            return (utility(board), None)
+            return utility(board)
+        v = -math.inf
+        for action in actions(board):
+            successor = result(board, action)
+            v = max(v, min_value(successor))
+        return v
 
-        # Else pick the action giving the max value when min_player plays optimally
-        value = -10
-        best_action = None
-
-        # Get set of actions and then select a random one until list is empty:
-        action_set = actions(board)
-
-        while len(action_set) > 0:
-            action = random.choice(tuple(action_set))
-            action_set.remove(action)
-
-            # A-B Pruning skips calls to min_player if lower result already found:
-            if best_min <= value:
-                break
-
-            actions_explored += 1
-            min_player_result = min_player(result(board, action), value)
-            if min_player_result[0] > value:
-                best_action = action
-                value = min_player_result[0]
-
-        return (value, best_action)
-
-    def min_player(board, best_max=-10):
-        """ Helper function to minimise score for 'O' player """
-
-        global actions_explored
-
-        # If the game is over, return board value
+    def min_value(board):
         if terminal(board):
-            return (utility(board), None)
+            return utility(board)
+        v=math.inf
+        for action in actions(board):
+            successor = result(board, action)
+            v = min(v, max_value(result(board, action)))
+        return v
 
-        # Else pick the action giving the min value when max_player plays optimally
-        value = 10
-        best_action = None
-
-        # Get set of actions and then select a random one until list is empty:
-        action_set = actions(board)
-        print(actions(board))
-        while len(action_set) > 0:
-            action = random.choice(tuple(action_set))
-            action_set.remove(action)
-
-            # A-B Pruning skips calls to max_player if higher result already found:
-            if best_max >= value:
-                break
-
-            actions_explored += 1
-            max_player_result = max_player(result(board, action), value)
-            if max_player_result[0] < value:
-                best_action = action
-                value = max_player_result[0]
-
-        return (value, best_action)
-
-    # If the board is terminal, return None:
     if terminal(board):
         return None
 
-    if player(board) == 'X':
-        print('AI is exploring possible actions...')
-        best_move = max_player(board)[1]
-        print('Actions explored by AI: ', actions_explored)
-        return best_move
+    current_player = player(board)
+
+    if current_player == X:
+        v = -math.inf
+        for action in actions(board):
+            k = min_value(result(board, action))  # FIXED
+            if k > v:
+                v = k
+                best_move = action
     else:
-        print('AI is exploring possible actions...')
-        best_move = min_player(board)[1]
-        print('Actions explored by AI: ', actions_explored)
-        return best_move
+        v = math.inf
+        for action in actions(board):
+            k = max_value(result(board, action))  # FIXED
+            if k < v:
+                v = k
+                best_move = action
+    return best_move
